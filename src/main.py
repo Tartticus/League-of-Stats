@@ -4,7 +4,7 @@ import duckdb
 import datetime
 import time
 # Set up API details and DuckDB connection
-api_key = 'RGAPI-2246fa0f-39ae-43a8-b5ca-c2328a5ffca5'
+api_key = 'Your api key'
 game_name = 'BlackInter69'
 tag_line = 'NA1'
 lol_excel = "lol_data.xlsx"
@@ -63,6 +63,7 @@ def create_tables():
             match_id TEXT PRIMARY KEY,
             datetime TIMESTAMP,
             game_duration INTEGER,
+            game_mode TEXT,
             win BOOLEAN,
             lane TEXT,
             player_champ TEXT,
@@ -144,6 +145,8 @@ def fetch_and_store_match_data():
         match_count += 1
         wait_count += 1
         match_datetime = datetime.datetime.fromtimestamp(match_data['info']['gameCreation'] / 1000)
+        # Get the game mode (e.g., "CLASSIC" for Summoner's Rift)
+        game_mode = match_data['info'].get('gameMode', 'Unknown')
         game_duration = match_data['info']['gameDuration']
         participant_data = next((p for p in match_data['info']['participants'] if p['puuid'] == puuid), None)
         if not participant_data:
@@ -152,6 +155,7 @@ def fetch_and_store_match_data():
         player_champ = participant_data['championName']
         lane = participant_data['lane']
         team_id = participant_data['teamId']
+        
         participant_gold = participant_data['goldEarned']
         # Function to find the opposing champion in the same lane/position
         opponent_data = next((p for p in match_data['info']['participants'] 
@@ -169,9 +173,9 @@ def fetch_and_store_match_data():
         
         # Insert into matches table
         duckdb_conn.execute("""
-            INSERT INTO matches (match_id, datetime, game_duration, win, lane, player_champ, player_gold, opposing_champ,lane_opponent_gold)
-            VALUES (?, ?, ?, ?, ?, ?,?,?,?)
-        """, (match_id, match_datetime, game_duration, win, lane, player_champ, participant_gold, opposing_champ, opponent_gold))
+            INSERT INTO matches (match_id, datetime, game_duration, game_mode,win, lane, player_champ, player_gold, opposing_champ,lane_opponent_gold)
+            VALUES (?, ?, ?, ?, ?, ?,?,?,?,?)
+        """, (match_id, match_datetime, game_duration, game_mode, win, lane, player_champ, participant_gold, opposing_champ, opponent_gold))
         
         
         # Collect friendly champions
