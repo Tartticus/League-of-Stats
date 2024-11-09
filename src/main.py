@@ -4,9 +4,10 @@ import duckdb
 import datetime
 import time
 # Set up API details and DuckDB connection
-api_key = 'Your API KEY'
+api_key = 'RGAPI-2246fa0f-39ae-43a8-b5ca-c2328a5ffca5'
 game_name = 'BlackInter69'
 tag_line = 'NA1'
+lol_excel = "lol_data.xlsx"
 duckdb_conn = duckdb.connect('league_data.db')
 
 # Define function to get item data from Data Dragon API
@@ -204,11 +205,13 @@ def fetch_and_store_match_data():
         """, (match_id, *friend_gold, *enemy_gold))
 
         print(f"Inserted match {match_count} out of {count}: {match_id} from {match_datetime}")
-        if wait_count == 25:
+        #Api wait section
+        if wait_count == 25 and match_count != count:
             print("\nWaiting 10 sec for api rate limit...\n")
             time.sleep(10)
             wait_count = 0
-
+    print("-----------------------------------------------------")        
+    print(f"\n{match_count} Matches inserted for {game_name}\n")
 
 
 def main():
@@ -237,8 +240,8 @@ def main():
     JOIN gold ON matches.match_id = gold.match_id;""").df()
     
     
-    lol_df.to_csv('lol_data.csv')
-    return print("csv updated")
+    lol_df.to_excel(lol_excel)
+    return print(f"Excel File Updated at {lol_excel}")
 
 
 main()
