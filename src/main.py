@@ -66,7 +66,9 @@ def create_tables():
             win BOOLEAN,
             lane TEXT,
             player_champ TEXT,
-            opposing_champ TEXT
+            player_gold INTEGER,
+            opposing_champ TEXT,
+            lane_opponent_gold INTEGER
         );
     """)
     duckdb_conn.execute("""
@@ -150,6 +152,7 @@ def fetch_and_store_match_data():
         player_champ = participant_data['championName']
         lane = participant_data['lane']
         team_id = participant_data['teamId']
+        participant_gold = participant_data['goldEarned']
         # Function to find the opposing champion in the same lane/position
         opponent_data = next((p for p in match_data['info']['participants'] 
                       if p['puuid'] != puuid 
@@ -158,15 +161,17 @@ def fetch_and_store_match_data():
         
         try:
             opposing_champ = opponent_data['championName']
+            opponent_gold = opponent_data['goldEarned']
         except TypeError:
             #if cant find opposing champ, put unknown
             opposing_champ = "Unknown"
+            opponent_gold = 0
         
         # Insert into matches table
         duckdb_conn.execute("""
-            INSERT INTO matches (match_id, datetime, game_duration, win, lane, player_champ, opposing_champ)
-            VALUES (?, ?, ?, ?, ?, ?,?)
-        """, (match_id, match_datetime, game_duration, win, lane, player_champ, opposing_champ))
+            INSERT INTO matches (match_id, datetime, game_duration, win, lane, player_champ, player_gold, opposing_champ,lane_opponent_gold)
+            VALUES (?, ?, ?, ?, ?, ?,?,?,?)
+        """, (match_id, match_datetime, game_duration, win, lane, player_champ, participant_gold, opposing_champ, opponent_gold))
         
         
         # Collect friendly champions
@@ -208,7 +213,7 @@ def fetch_and_store_match_data():
         #Api wait section
         if wait_count == 25 and match_count != count:
             print("\nWaiting 10 sec for api rate limit...\n")
-            time.sleep(10)
+            time.sleep(13)
             wait_count = 0
     print("-----------------------------------------------------")        
     print(f"\n{match_count} Matches inserted for {game_name}\n")
