@@ -4,7 +4,7 @@ import duckdb
 import datetime
 import time
 # Set up API details and DuckDB connection
-api_key = 'Your api key'
+api_key = 'Your API Key'
 game_name = 'BlackInter69'
 tag_line = 'NA1'
 lol_excel = "lol_data.xlsx"
@@ -145,8 +145,22 @@ def fetch_and_store_match_data():
         match_count += 1
         wait_count += 1
         match_datetime = datetime.datetime.fromtimestamp(match_data['info']['gameCreation'] / 1000)
-        # Get the game mode (e.g., "CLASSIC" for Summoner's Rift)
-        game_mode = match_data['info'].get('gameMode', 'Unknown')
+        
+        
+        # Get the game mode and queue ID
+        raw_game_mode = match_data['info'].get('gameMode', 'Unknown')
+        queue_id = match_data['info'].get('queueId', -1)
+
+        # Set game mode based on queue ID and game mode
+        if raw_game_mode == "CLASSIC":
+            if queue_id in {420, 440}:  # Ranked Solo/Duo or Ranked Flex queue IDs
+                game_mode = "Ranked"
+            else:
+                game_mode = "Norms"
+        else:
+            game_mode = raw_game_mode  # Use raw game mode for non-CLASSIC modes
+        
+        
         game_duration = match_data['info']['gameDuration']
         participant_data = next((p for p in match_data['info']['participants'] if p['puuid'] == puuid), None)
         if not participant_data:
@@ -252,5 +266,3 @@ def main():
     lol_df.to_excel(lol_excel)
     return print(f"Excel File Updated at {lol_excel}")
 
-
-main()
