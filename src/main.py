@@ -4,7 +4,7 @@ import duckdb
 import datetime
 import time
 # Set up API details and DuckDB connection
-api_key = 'RGAPI-2246fa0f-39ae-43a8-b5ca-c2328a5ffca5'
+api_key = 'Your API KEY'
 game_name = 'BlackInter69'
 tag_line = 'NA1'
 duckdb_conn = duckdb.connect('league_data.db')
@@ -148,12 +148,25 @@ def fetch_and_store_match_data():
         win = participant_data['win']
         player_champ = participant_data['championName']
         lane = participant_data['lane']
-
+        team_id = participant_data['teamId']
+        # Function to find the opposing champion in the same lane/position
+        opponent_data = next((p for p in match_data['info']['participants'] 
+                      if p['puuid'] != puuid 
+                      and p['lane'] == lane 
+                      and p['teamId'] != team_id), None)
+        
+        try:
+            opposing_champ = opponent_data['championName']
+        except TypeError:
+            #if cant find opposing champ, put unknown
+            opposing_champ = "Unknown"
+        
         # Insert into matches table
         duckdb_conn.execute("""
-            INSERT INTO matches (match_id, datetime, game_duration, win, lane, player_champ)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (match_id, match_datetime, game_duration, win, lane, player_champ))
+            INSERT INTO matches (match_id, datetime, game_duration, win, lane, player_champ, opposing_champ)
+            VALUES (?, ?, ?, ?, ?, ?,?)
+        """, (match_id, match_datetime, game_duration, win, lane, player_champ, opposing_champ))
+        
         
         # Collect friendly champions
         friend_champs = [p['championName'] for p in match_data['info']['participants'] if p['teamId'] == participant_data['teamId']]
