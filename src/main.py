@@ -68,6 +68,7 @@ def create_tables():
             lane TEXT,
             player_champ TEXT,
             player_gold INTEGER,
+            CS INTEGER,
             opposing_champ TEXT,
             lane_opponent_gold INTEGER
         );
@@ -165,11 +166,15 @@ def fetch_and_store_match_data():
         participant_data = next((p for p in match_data['info']['participants'] if p['puuid'] == puuid), None)
         if not participant_data:
             continue
+        
+        # Win
         win = participant_data['win']
         player_champ = participant_data['championName']
         lane = participant_data['lane']
         team_id = participant_data['teamId']
         
+        #creep score
+        cs = participant_data["totalMinionsKilled"] + participant_data["neutralMinionsKilled"]
         participant_gold = participant_data['goldEarned']
         # Function to find the opposing champion in the same lane/position
         opponent_data = next((p for p in match_data['info']['participants'] 
@@ -187,9 +192,9 @@ def fetch_and_store_match_data():
         
         # Insert into matches table
         duckdb_conn.execute("""
-            INSERT INTO matches (match_id, datetime, game_duration, game_mode,win, lane, player_champ, player_gold, opposing_champ,lane_opponent_gold)
+            INSERT INTO matches (match_id, datetime, game_duration, game_mode,win, lane, player_champ, player_gold, CS, opposing_champ,lane_opponent_gold)
             VALUES (?, ?, ?, ?, ?, ?,?,?,?,?)
-        """, (match_id, match_datetime, game_duration, game_mode, win, lane, player_champ, participant_gold, opposing_champ, opponent_gold))
+        """, (match_id, match_datetime, game_duration, game_mode, win, lane, player_champ, participant_gold, cs, opposing_champ, opponent_gold))
         
         
         # Collect friendly champions
