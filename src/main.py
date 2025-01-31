@@ -193,7 +193,7 @@ def fetch_and_store_match_data():
         # Insert into matches table
         duckdb_conn.execute("""
             INSERT INTO matches (match_id, datetime, game_duration, game_mode,win, lane, player_champ, player_gold, CS, opposing_champ,lane_opponent_gold)
-            VALUES (?, ?, ?, ?, ?, ?,?,?,?,?)
+            VALUES (?, ?, ?, ?, ?, ?,?,?,?,?,?)
         """, (match_id, match_datetime, game_duration, game_mode, win, lane, player_champ, participant_gold, cs, opposing_champ, opponent_gold))
         
         
