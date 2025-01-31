@@ -80,7 +80,12 @@ def create_tables():
             friend_champ2 TEXT,
             friend_champ3 TEXT,
             friend_champ4 TEXT,
-            friend_champ5 TEXT
+            friend_champ5 TEXT,
+            enemy_champ1 TEXT,
+            enemy_champ2 TEXT,
+            enemy_champ3 TEXT,
+            enemy_champ4 TEXT,
+            enemy_champ5 TEXT
         );
     """)
     duckdb_conn.execute("""
@@ -200,12 +205,16 @@ def fetch_and_store_match_data():
         # Collect friendly champions
         friend_champs = [p['championName'] for p in match_data['info']['participants'] if p['teamId'] == participant_data['teamId']]
         friend_champs += [None] * (5 - len(friend_champs))  # Pad to ensure 5 entries
+        
+        #collect enemy champs
+        enemy_champs = [p['championName'] for p in match_data['info']['participants'] if p['teamId'] != participant_data['teamId']]
+        enemy_champs += [None] * (5 - len(friend_champs))  # Pad to ensure 5 entries
 
         # Insert into champs table
         duckdb_conn.execute("""
-            INSERT INTO champs (match_id, friend_champ1, friend_champ2, friend_champ3, friend_champ4, friend_champ5)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (match_id, *friend_champs))
+            INSERT INTO champs (match_id, friend_champ1, friend_champ2, friend_champ3, friend_champ4, friend_champ5, enemy_champ1, enemy_champ2, enemy_champ3, enemy_champ4, enemy_champ5)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (match_id, *friend_champs, *enemy_champs))
 
         # Collect items (up to 8)
         items = [
@@ -270,4 +279,8 @@ def main():
     
     lol_df.to_excel(lol_excel)
     return print(f"Excel File Updated at {lol_excel}")
+
+
+# Run main function
+main()
 
